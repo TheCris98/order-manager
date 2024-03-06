@@ -1,0 +1,19 @@
+<ion-content class="ion-padding">
+  <h1>Hola</h1>
+  <h3>Inicia sesión para continuar!</h3>
+
+  <ion-img src="../../../assets/login/login_logo.png"></ion-img>
+
+  <form [formGroup]="loginForm" (ngSubmit)="login()">
+    <div class="form-field">
+      <ion-input errorText="Email no válido" fill="outline" formControlName="email" label="Usuario" labelPlacement="floating" placeholder="ejemplo@dominio.com" type="email"></ion-input>
+    </div>
+    <div class="form-field">
+      <ion-input fill="outline" formControlName="password" label="Contraseña" labelPlacement="floating" type="password"></ion-input>
+    </div>
+    <ion-button expand='block' type="submit" color="primary" [disabled]="loginForm.invalid">Ingresar</ion-button>
+  </form>
+  <div class="footer-text">
+    ¿Aún no tienes cuenta? <a routerLink="/register">¡Registrate Aquí!</a>
+  </div>
+</ion-content>
