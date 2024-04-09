@@ -1,8 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 import { RegisterData } from 'src/app/models/auth';
+import { UserData } from 'src/app/models/navigation';
+import { AlertsService } from 'src/app/services/alerts.service';
 import { AuthFirebaseService } from 'src/app/services/auth-firebase.service';
+import { LocalStorageService } from 'src/app/services/local-storage.service';
+import { StorageFirebaseService } from 'src/app/services/storage-firebase.service';
 
 @Component({
   selector: 'app-register',
@@ -10,40 +15,78 @@ import { AuthFirebaseService } from 'src/app/services/auth-firebase.service';
   styleUrls: ['./register.page.scss'],
 })
 export class RegisterPage implements OnInit {
-registerForm : UntypedFormGroup;
+  registerForm: UntypedFormGroup;
+  platform: string;
+  showPassword : boolean = false;
+  user : UserData = this.authFirebaseService.loadUserFromLocalStorage();
   constructor(
-    private registerFormBuilder: UntypedFormBuilder, 
-    private authFirebaseService : AuthFirebaseService,
-    private router : Router) {
+    private registerFormBuilder: UntypedFormBuilder,
+    private authFirebaseService: AuthFirebaseService,
+    private storageFirebaseService: StorageFirebaseService,
+    private alertService: AlertsService,
+    private router: Router) {
     this.registerForm = this.registerFormBuilder.group({
       name: ['', Validators.required],
       lastname: ['', Validators.required],
       address: ['', Validators.required],
       phone: ['', Validators.required],
-      email: ['',[ Validators.required,Validators.email]],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
       role: ['U', Validators.required],
       avatar: ['', Validators.required]
     })
-   }
-
-  ngOnInit() {
+    this.platform = Capacitor.getPlatform()
   }
 
-  async register(){
+  ngOnInit() {
+    console.log(this.user)
+  }
+  
+  async register() {
     if (this.registerForm.valid) {
-      const data : RegisterData = this.registerForm.value
-      const result = await this.authFirebaseService.register(data);
-      if (result.success) {
+      const data: RegisterData = this.registerForm.value
+      const response = await this.authFirebaseService.register(data);
+      if (response.data === true) {
         // Manejar registro exitoso, por ejemplo, redirigir al usuario o mostrar un mensaje
-        console.log("registrado exitosamente")
+        this.alertService.presentSimpleToast('Usuario registrado exitosamente')
         this.router.navigate(['/login'])
+        this.registerForm.reset()
       } else {
         // Manejar error de registro
-        console.log("kgaste")
+        this.alertService.presentCustomToast(response.data)
       }
     }
   }
 
-  //TODO: Agregar toast, gestionar errores de response, obtener estado de autenticación
+  async uploadImage() {
+    const response = await this.storageFirebaseService.captureAndUploadImageMobile();
+    if (typeof response.data === 'string') {
+      this.registerForm.patchValue({
+        avatar: response.data
+      });
+    } else {
+      this.alertService.presentCustomToast(response.data)
+      this.registerForm.patchValue({
+        avatar: null
+      });
+    }
+  }
+
+  async uploadFile(event: any) {
+    const response = await this.storageFirebaseService.captureAndUploadImageWeb(event);
+    if (typeof response.data === 'string') {
+      this.registerForm.patchValue({
+        avatar: response.data
+      });
+    } else {
+      this.alertService.presentCustomToast(response.data)
+      this.registerForm.patchValue({
+        avatar: null
+      });
+    }
+  }
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
 }

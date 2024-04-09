@@ -1,0 +1,53 @@
+<!-- <ion-header>
+  <ion-toolbar>
+    <ion-title>Productos</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list *ngFor="let element of listaProductos; let i = index">
+    <ion-item>
+      <ion-avatar slot="start">
+        <img src={{element.imgPro}} style="height: auto; width: auto; margin-top: auto; margin-bottom: auto; margin-left: 50px">
+      </ion-avatar>
+      <ion-label style="text-align: right;">
+        <h2>{{element.nomPro}}</h2>
+        <h3><b> <span style="margin-left: 10px;"> Cantidad: </span></b>
+          <input [(ngModel)]="element.catProNavigation" type="number" style="width: 50px; text-align: center;">
+        </h3>
+        <ion-button
+          [disabled]="element.stockPro < element.catProNavigation || element.catProNavigation == 0 || element.catProNavigation == null"
+          (click)="agregarAlCarrito(element)">Agregar</ion-button>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content> -->
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Productos</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list *ngFor="let element of products; let i = index">
+    <ion-item>
+      <ion-label>
+        <ion-avatar>
+          <ion-img [src]="element.image"></ion-img>
+        </ion-avatar>
+      </ion-label>
+      <ion-label>
+        <h2>{{element.name}}</h2>
+        <h3>{{element.description}}</h3>
+        <ion-input label="Cantidad" fill="outline" labelPlacement="floating"></ion-input>
+        <ion-button>Agregar</ion-button>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>

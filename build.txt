@@ -1,0 +1,13 @@
+rmdir /s /q android
+ionic build
+npx cap add android
+npx capacitor-assets generate --android
+npx cap open android
+
+
+
+--GENERAR APK PARA ENTORNO LOCAL
+Backend: Borrar app.UseHttpsRedirection(); en Startup.cs
+Frontend: Poner las variables del server local HTTP no UseHttpsRedirection
+Plataforma Android: Agregar la linea android:usesCleartextTraffic="true"> en el AndroidManifest.xml
+Prueba

@@ -57,4 +57,22 @@ ion-button {
     position: relative;
     margin-bottom: 2rem;
     height: 50px;
+
+    ion-item {
+        --background: #121212;
+        /* O el color de fondo que prefieras */
+        --border-color: #5e5e5e;
+        /* O el color de borde que prefieras */
+        --border-style: solid;
+        --border-width: 1px;
+        --border-radius: 4px;
+    }
+
+    ion-item[slot="end"] {
+        --icon-color: #999;
+        /* O el color que prefieras para el icono */
+        --icon-font-size: 1rem;
+        /* O el tamaño que prefieras para el icono */
+    }
+
 }

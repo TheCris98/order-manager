@@ -6,14 +6,19 @@
 
   <form [formGroup]="loginForm" (ngSubmit)="login()">
     <div class="form-field">
-      <ion-input errorText="Email no válido" fill="outline" formControlName="email" label="Usuario" labelPlacement="floating" placeholder="ejemplo@dominio.com" type="email"></ion-input>
+      <ion-input errorText="Email no válido" fill="outline" formControlName="email" label="Email"
+        labelPlacement="floating" placeholder="ejemplo@dominio.com" type="email"></ion-input>
     </div>
     <div class="form-field">
-      <ion-input fill="outline" formControlName="password" label="Contraseña" labelPlacement="floating" type="password"></ion-input>
+      <ion-item>
+        <ion-input [type]="showPassword ? 'text' : 'password'" formControlName="password" label="Contraseña" labelPlacement="floating"></ion-input>
+        <ion-icon slot="end" [name]="showPassword ? 'eye-off' : 'eye'" (click)="togglePassword()"></ion-icon>
+      </ion-item>
     </div>
+    <!-- TODO: AGREGAR UN OLVIDASTE TU CONTRASEÑA -->
     <ion-button expand='block' type="submit" color="primary" [disabled]="loginForm.invalid">Ingresar</ion-button>
   </form>
   <div class="footer-text">
-    ¿Aún no tienes cuenta? <a routerLink="/register">¡Registrate Aquí!</a>
+    ¿Aún no tienes cuenta?, <a routerLink="/register">¡Registrate Aquí!</a>
   </div>
 </ion-content>

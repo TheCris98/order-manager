@@ -46,6 +46,68 @@ ion-button {
     position: relative;
     margin-bottom: 2rem;
     height: 50px;
+
+    .file-input {
+        display: none;
+    }
+
+    .file-label {
+        display: block;
+        /* Cambiado a block para que ocupe todo el ancho disponible */
+        width: 100%;
+        /* Asegura que ocupe el mismo largo que los otros inputs */
+        background-color: #f0f0f0;
+        color: black;
+        padding: 13px 20px;
+        /* Ajusta el padding para coincidir con la altura de tus ion-input */
+        cursor: pointer;
+        border-radius: 5px;
+        border: 1px solid #dcdcdc;
+        text-align: left;
+        /* Asegura que el texto esté alineado como en los ion-input */
+        box-sizing: border-box;
+        /* Asegura que el padding no aumente el tamaño más allá del 100% */
+    }
+
+    .custom-file-input {
+        display: block;
+        width: 100%;
+        background-color: #f0f0f0;
+        color: black;
+        padding: 13px 20px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: 1px solid #dcdcdc;
+        text-align: left;
+        box-sizing: border-box;
+    }
+
+    .icon-spacing {
+        margin-right: 8px;
+        /* Ajusta el valor según tus necesidades */
+    }
+
+    .text-spacing {
+        margin-left: 8px;
+        /* Ajusta el valor según tus necesidades */
+    }
+
+    ion-item {
+        --background: #121212;
+        /* O el color de fondo que prefieras */
+        --border-color: #5e5e5e;
+        /* O el color de borde que prefieras */
+        --border-style: solid;
+        --border-width: 1px;
+        --border-radius: 4px;
+    }
+
+    ion-item[slot="end"] {
+        --icon-color: #999;
+        /* O el color que prefieras para el icono */
+        --icon-font-size: 1rem;
+        /* O el tamaño que prefieras para el icono */
+    }
 }
 
 .center-content {

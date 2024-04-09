@@ -2,39 +2,57 @@
   <h1>Crear Cuenta</h1>
   <h3>Registrate para empezar a ordenar!</h3>
   <form [formGroup]="registerForm" (ngSubmit)="register()">
-    <!-- <ion-avatar class="avatar" *ngIf="form.value.imgCli">
-      <img [src]="form.value.imgCli" />
-    </ion-avatar> -->
+    <ion-avatar class="avatar" *ngIf="registerForm.value.avatar">
+      <img [src]="registerForm.value.avatar" />
+    </ion-avatar>
     <div class="form-field">
-        <ion-input errorText="Email no válido" fill="outline" formControlName="email" label="Email" labelPlacement="floating" placeholder="ejemplo@dominio.com" type="text"></ion-input>
+      <ion-input errorText="Email no válido" fill="outline" formControlName="email" label="Email"
+        labelPlacement="floating" placeholder="ejemplo@dominio.com" type="email"></ion-input>
     </div>
     <div class="form-field">
-      <ion-input fill="outline" formControlName="password" label="Contraseña" labelPlacement="floating" type="password"></ion-input>
+      <ion-item>
+        <ion-input [type]="showPassword ? 'text' : 'password'" formControlName="password" label="Contraseña"
+          labelPlacement="floating"></ion-input>
+        <ion-icon slot="end" [name]="showPassword ? 'eye-off' : 'eye'" (click)="togglePassword()"></ion-icon>
+      </ion-item>
     </div>
     <div class="form-field">
-      <ion-input fill="outline" formControlName="name" label="Nombre" labelPlacement="floating" placeholder="John" type="text"></ion-input>
+      <ion-input fill="outline" formControlName="name" label="Nombre" labelPlacement="floating" placeholder="John"
+        type="text"></ion-input>
     </div>
     <div class="form-field">
-      <ion-input fill="outline" formControlName="lastname" label="Apellido" labelPlacement="floating" placeholder="Doe" type="text"></ion-input>
+      <ion-input fill="outline" formControlName="lastname" label="Apellido" labelPlacement="floating" placeholder="Doe"
+        type="text"></ion-input>
     </div>
     <div class="form-field">
-      <ion-input fill="outline" formControlName="avatar" label="Imagen" labelPlacement="floating"></ion-input>
+      <ion-input fill="outline" formControlName="address" label="Dirección" labelPlacement="floating"
+        placeholder="Av. Principal y Secundaria"></ion-input>
     </div>
     <div class="form-field">
-      <ion-input fill="outline" formControlName="address" label="Dirección" labelPlacement="floating" placeholder="Av. Principal y Secundaria"></ion-input>
+      <ion-input fill="outline" formControlName="phone" label="Teléfono" labelPlacement="floating"
+        placeholder="0990000000"></ion-input>
     </div>
-    <div class="form-field">
-        <ion-input fill="outline" formControlName="phone" label="Teléfono" labelPlacement="floating" placeholder="0990000000"></ion-input>
+    <div *ngIf="platform !== 'web'" class="form-field custom-file-input">
+      <ion-item (click)="uploadImage()">
+        <ion-icon name="camera" slot="start" class="icon-spacing"></ion-icon>
+        <ion-label class="text-spacing">Haz click para tomar una imagen</ion-label>
+      </ion-item>
     </div>
-    <!-- TODO: Mostrar select dependiendo del estado de autenticación -->
-    <!-- <div class="form-field">
+
+    <div class="form-field" *ngIf="platform === 'web'">
+      <input type="file" id="file" class="file-input" (change)="uploadFile($event)" accept="image/*">
+      <label for="file" class="file-label custom-file-input">Elige una imagen</label>
+    </div>
+
+    <div class="form-field" *ngIf="user.role === 'A'">
       <ion-select formControlName="role" label="Seleccione un rol" color="primary">
         <ion-select-option value="M">Mesero</ion-select-option>
         <ion-select-option value="K">Cocinero</ion-select-option>
         <ion-select-option value="C">Cajero</ion-select-option>
         <ion-select-option value="A">Administrador</ion-select-option>
       </ion-select>
-    </div> -->
+    </div>
+
     <ion-button expand='block' type="submit" color="primary" [disabled]="registerForm.invalid">Registrarse</ion-button>
     <p class="footer-text">Ya estoy registrado, <a routerLink="/login">Iniciar Sesión</a></p>
 

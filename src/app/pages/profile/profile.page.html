@@ -1,0 +1,38 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+<!-- TODO: Ver si agregar un apartado de editar el perfil, sería de crear otro componente para reutilizar en el editar personal -->
+<ion-content>
+  <div id="container">
+    <ion-card>
+      <ion-card-header>
+        <ion-avatar class="avatar">
+          <ion-img [src]="user.avatar">
+          </ion-img>
+        </ion-avatar>
+        <br>
+        <ion-card-subtitle>Mi descripción</ion-card-subtitle>
+        <br>
+        <strong class="capitalize">{{user.name + " " + user.lastname}}</strong>
+        <ion-note>{{user.email}}</ion-note>
+      </ion-card-header>
+
+      <ion-card-content>
+        <br>
+        <b>{{user.address}}</b> <br>
+        <b>{{user.phone}}</b> <br>
+        <b>Miembro desde el <a>{{user.creationDate | date: 'dd \'de\' MMMM \'del\' yyyy' }}</a></b>
+      </ion-card-content>
+    </ion-card>
+  </div>
+  <!-- <ion-item>
+    <ion-label [routerLink]="['/login']" (click)="logout()">
+      Cerrar Sesión
+    </ion-label>
+  </ion-item> -->
+</ion-content>

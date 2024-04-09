@@ -1,0 +1,20 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Tienda</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-searchbar #searchBar placeholder="Buscar producto" show-clear-button="focus" type="search"
+  (ionChange)="searchItem($event)" debounce="1000"></ion-searchbar>
+<ion-content>
+  <ion-card (click)="openProducts(element.uid)" *ngFor="let element of categories">
+    <ion-img [src]="element.image"></ion-img>
+    <div class="myOverlay">
+      <ion-text>
+        <h1>{{element.name}}</h1>
+      </ion-text>
+    </div>
+  </ion-card>
+</ion-content>

@@ -2,81 +2,113 @@ import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { LoginData, RegisterData } from '../models/auth';
-import { UserData } from '../models/navigation';
+import { FirebaseError, UserData, Response } from '../models/navigation';
 import { firstValueFrom } from 'rxjs';
+import { LocalStorageService } from './local-storage.service';
+import { ErrorsFirebaseService } from './errors-firebase.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthFirebaseService {
 
-  constructor(private authFirebase: AngularFireAuth, private fireStore: AngularFirestore) { }
+  constructor(
+    private authFirebase: AngularFireAuth,
+    private fireStore: AngularFirestore,
+    private localStorage: LocalStorageService,
+    private errorFirebase: ErrorsFirebaseService
+  ) { }
 
-  async login(data: LoginData): Promise<UserData | null> {
+  async login(data: LoginData): Promise<Response> {
+    var response: Response = {
+      data: null,
+      message: 'Void'
+    }
     try {
-      const result = await this.authFirebase.signInWithEmailAndPassword(data.email, data.password);
-      if (result.user) {
-        const userDocRef = this.fireStore.doc(`users/${result.user.uid}`).get();
-        const userDoc = await firstValueFrom(userDocRef);
-
-        if (!userDoc.exists) {
-          console.log('Documento de usuario no encontrado.');
-          return null;
-        }
-
-        const docData = userDoc.data() as any;
-        if (!docData) {
-          console.log('No se pudieron obtener datos del documento.');
-          return null;
-        }
-
-        // Mapeo explícito a la interfaz UserData
-        const userData: UserData = {
-          uid: result.user.uid, // Asumiendo que deseas mantener el UID del usuario
-          email: docData.email,
-          name: docData.nombre,
-          lastname: docData.apellido,
-          address: docData.direccion,
-          phone: docData.telefono,
-          role: docData.rol,
-          avatar: docData.avatar,
-          creationDate: docData.fechaCreacion.toDate(), // Convertir Timestamp de Firestore a Date si es necesario
-        };
-
-        localStorage.setItem('user', JSON.stringify(userData));
-        return userData;
+      const result: any = await this.authFirebase.signInWithEmailAndPassword(data.email, data.password);
+      const userDocRef = this.fireStore.doc(`users/${result.user.uid}`).get();
+      const userDoc = await firstValueFrom(userDocRef);
+      const docData = userDoc.data() as any;
+      // Mapeo explícito a la interfaz UserData
+      const userData: UserData = {
+        uid: result.user.uid, // Asumiendo que deseas mantener el UID del usuario
+        email: docData.email,
+        name: docData.nombre,
+        lastname: docData.apellido,
+        address: docData.direccion,
+        phone: docData.telefono,
+        role: docData.rol,
+        avatar: docData.avatar,
+        creationDate: docData.fechaCreacion.toDate(), // Convertir Timestamp de Firestore a Date si es necesario
+      };
+      this.localStorage.setLocalStorageItem('user', userData)
+      response = {
+        data: userData,
+        message: 'Ok'
       }
-      return null;
-    } catch (error) {
-      console.error('Error al iniciar sesión', error);
-      return null;
+      return response;
+    } catch (error: any) {
+      response = {
+        data: this.errorFirebase.parseError(error.code),
+        message: 'Error'
+      }
+      return response;
     }
   }
 
+  loadUserFromLocalStorage(): UserData {
+    const userJson = this.localStorage.getLocalStorageItem('user')
+    if (userJson) {
+      return userJson
+    } else {
+      const response: UserData = {
+        uid: '1',
+        address: '1st Street',
+        avatar: 'https://www.pngplay.com/wp-content/uploads/12/User-Avatar-Profile-PNG-Pic-Clip-Art-Background.png',
+        creationDate: new Date(),
+        email: 'email@domain.com',
+        lastname: 'Doe',
+        name: 'John',
+        phone: '0999999999',
+        role: 'U'
+      }
+      return response
+    }
+  }
 
-  async register(data: RegisterData): Promise<any> {
+  async register(data: RegisterData): Promise<Response> {
+    var response: Response = {
+      data: null,
+      message: 'Void'
+    }
     try {
       // Crear usuario con email y password para autenticación
-      const result = await this.authFirebase.createUserWithEmailAndPassword(data.email, data.password);
-      if (result.user) {
-        // Crear documento en Firestore con la misma UID y los datos del formulario
-        const userRef = this.fireStore.collection('users').doc(result.user.uid);
-        await userRef.set({
-          uid: result.user.uid,
-          email: data.email,
-          nombre: data.name,
-          apellido: data.lastname,
-          direccion: data.address,
-          telefono: data.phone,
-          rol: data.role,
-          avatar: data.avatar,
-          fechaCreacion: new Date()
-        });
-        return { success: true };
+      const result: any = await this.authFirebase.createUserWithEmailAndPassword(data.email, data.password);
+
+      // Crear documento en Firestore con la misma UID y los datos del formulario
+      const userRef = this.fireStore.collection('users').doc(result.user.uid);
+      await userRef.set({
+        uid: result.user.uid,
+        email: data.email,
+        nombre: data.name,
+        apellido: data.lastname,
+        direccion: data.address,
+        telefono: data.phone,
+        rol: data.role,
+        avatar: data.avatar,
+        fechaCreacion: new Date()
+      })
+      response = {
+        data: true,
+        message: 'Ok'
       }
-    } catch (error) {
-      console.error('Error al registrar usuario', error);
-      return { success: false, error };
+      return response;
+    } catch (error: any) {
+      response = {
+        data: this.errorFirebase.parseError(error.code),
+        message: 'Error'
+      }
+      return response;
     }
   }
 }
