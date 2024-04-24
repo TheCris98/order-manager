@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginData } from 'src/app/models/auth';
-import { AlertsService } from 'src/app/services/alerts.service';
-import { AuthFirebaseService } from 'src/app/services/auth-firebase.service';
+import { AlertsService } from 'src/app/services/core-services/alerts.service';
+import { AuthFirebaseService } from 'src/app/services/firebase-services/auth-firebase.service';
 
 @Component({
   selector: 'app-login',
@@ -30,11 +30,10 @@ export class LoginPage implements OnInit {
 
   ngOnInit() {
   }
-
   async login() {
     const data : LoginData = this.loginForm.value;
     const response = await this.authFirebaseSerive.login(data);
-    if ('email' in response.data) {
+    if (response.message === 'Ok') {
       // Navegar a la página principal
       this.router.navigate(['/folder/profile'])
       this.loginForm.reset()

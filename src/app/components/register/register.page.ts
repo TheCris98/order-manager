@@ -4,10 +4,9 @@ import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { RegisterData } from 'src/app/models/auth';
 import { UserData } from 'src/app/models/navigation';
-import { AlertsService } from 'src/app/services/alerts.service';
-import { AuthFirebaseService } from 'src/app/services/auth-firebase.service';
-import { LocalStorageService } from 'src/app/services/local-storage.service';
-import { StorageFirebaseService } from 'src/app/services/storage-firebase.service';
+import { AlertsService } from 'src/app/services/core-services/alerts.service';
+import { AuthFirebaseService } from 'src/app/services/firebase-services/auth-firebase.service';
+import { StorageFirebaseService } from 'src/app/services/firebase-services/storage-firebase.service';
 
 @Component({
   selector: 'app-register',
@@ -39,14 +38,13 @@ export class RegisterPage implements OnInit {
   }
 
   ngOnInit() {
-    console.log(this.user)
   }
   
   async register() {
     if (this.registerForm.valid) {
       const data: RegisterData = this.registerForm.value
       const response = await this.authFirebaseService.register(data);
-      if (response.data === true) {
+      if (response.message === 'Ok') {
         // Manejar registro exitoso, por ejemplo, redirigir al usuario o mostrar un mensaje
         this.alertService.presentSimpleToast('Usuario registrado exitosamente')
         this.router.navigate(['/login'])
@@ -60,7 +58,7 @@ export class RegisterPage implements OnInit {
 
   async uploadImage() {
     const response = await this.storageFirebaseService.captureAndUploadImageMobile();
-    if (typeof response.data === 'string') {
+    if (response.message === 'Ok') {
       this.registerForm.patchValue({
         avatar: response.data
       });
@@ -74,7 +72,7 @@ export class RegisterPage implements OnInit {
 
   async uploadFile(event: any) {
     const response = await this.storageFirebaseService.captureAndUploadImageWeb(event);
-    if (typeof response.data === 'string') {
+    if (response.message === 'Ok') {
       this.registerForm.patchValue({
         avatar: response.data
       });

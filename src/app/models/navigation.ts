@@ -37,3 +37,26 @@ export interface Product {
     state: string;
     stock: number;
 }
+
+export interface OrderDetail {
+    product: Product;
+    quantity: number;
+    indication: string;
+    requestedDate: Date;
+}
+
+export interface Table {
+    uid: string;
+    capacity: number;
+    number: number;
+    status: string;
+}
+
+export interface Order {
+    uid: string;
+    details: OrderDetail[];
+    table: Table;
+    totalAmount: number;
+    orderDate: Date;
+    orderedBy: UserData; 
+}

@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Detalle de la Orden
+      <ion-card-subtitle *ngIf="cartItems.length > 0">Total: $ {{totalAmount | number:'1.2-2'}}
+      </ion-card-subtitle>
+    </ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="no-items" *ngIf="cartItems.length<=0">
+    <ion-label>
+      <h1>Aún no se ha ordenado nada</h1><br>
+      <h1>¡Ir a la sección de productos para agregar!</h1><br>
+      <ion-img src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png"></ion-img>
+    </ion-label>
+  </div>
+  <div class="cart-items" *ngIf="cartItems.length>0">
+    <ion-list *ngFor="let element of cartItems; let i = index">
+      <ion-item>
+        <ion-avatar slot="start">
+          <ion-img [src]="element.product.image"></ion-img>
+        </ion-avatar>
+        <ion-label>
+          <h2>{{element.product.name}}</h2>
+          <b><span>Cantidad: {{element.quantity}}</span></b>
+          <br>
+          <ion-button color="success" [disabled]="element.quantity <= 1" (click)="restProduct(i)">
+            <ion-icon name="remove-outline"></ion-icon>
+          </ion-button>
+          <ion-button color="success" [disabled]="element.quantity >= element.product.stock" (click)="addProduct(i)">
+            <ion-icon name="add-outline"></ion-icon>
+          </ion-button>
+          <br>
+          <ion-button color="danger" (click)="deleteProduct(i)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+          <!-- TODO: Ver el bicho para agregar la funcionalidad de PARA LLEVAR -->
+          <!-- <ion-accordion-group style="margin-left: 30%;">
+          <ion-accordion toggleIcon="fast-food" toggleIconSlot="start">
+            <ion-item slot="header" color="light">
+              <ion-label>Para llevar</ion-label>
+              <ion-checkbox [(ngModel)]="element.detalleFacturas" (ionChange)="llevar(i)"></ion-checkbox>
+            </ion-item>
+            <div *ngIf="element.detalleFacturas" class="contenedor" slot="content" style="text-align: center;">
+              <input [(ngModel)]="element.cantLlevDet" type="number" placeholder="¿Cuánto para llevar?" (ngModelChange)="onInputChange($event)">
+            </div>
+          </ion-accordion>
+        </ion-accordion-group> -->
+        </ion-label>
+      </ion-item>
+      <div class="contenedor">
+        <ion-input [(ngModel)]="element.indication" type="text" placeholder="Indicaciones" fill="outline"
+          (ngModelChange)="onIndicationChange($event)"></ion-input>
+      </div>
+    </ion-list>
+    <div class="order-options">
+      <ion-item>
+        <ion-select [(ngModel)]="selectedTable" label="Selecciona una mesa">
+          <ion-select-option *ngFor="let table of tables; let i = index" [value]="table">
+            <p>Mesa</p> {{ table.number }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <!-- TODO: Ver como gestionar los IDs de las órdenes para que sean legibles -->
+        <ion-input [(ngModel)]="orderID" placeholder="Ej. ORD-20240101-XXX" label="Agregar a otra orden"></ion-input>
+      </ion-item>
+    </div>
+    <div class="action-buttons">
+      <ion-button class="custom-button" (click)="clearAll()" color="danger">VACIAR ORDEN</ion-button><br>
+      <ion-button class="custom-button" (click)="sendOrder()" color="success"
+        [disabled]="selectedTable.number === 0 && orderID === ''">ORDENAR</ion-button>
+    </div>
+  </div>
+</ion-content>

@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { LoginData, RegisterData } from '../models/auth';
-import { FirebaseError, UserData, Response } from '../models/navigation';
+import { LoginData, RegisterData } from '../../models/auth';
+import { FirebaseError, UserData, Response } from '../../models/navigation';
 import { firstValueFrom } from 'rxjs';
-import { LocalStorageService } from './local-storage.service';
-import { ErrorsFirebaseService } from './errors-firebase.service';
+import { LocalStorageService } from '../core-services/local-storage.service';
+import { ErrorsFirebaseService } from '../core-services/errors-firebase.service';
+import { TimeZoneService } from '../core-services/time-zone.service';
 
 @Injectable({
   providedIn: 'root'
@@ -16,7 +17,8 @@ export class AuthFirebaseService {
     private authFirebase: AngularFireAuth,
     private fireStore: AngularFirestore,
     private localStorage: LocalStorageService,
-    private errorFirebase: ErrorsFirebaseService
+    private errorFirebase: ErrorsFirebaseService,
+    private timeZoneService: TimeZoneService
   ) { }
 
   async login(data: LoginData): Promise<Response> {
@@ -84,7 +86,8 @@ export class AuthFirebaseService {
     try {
       // Crear usuario con email y password para autenticación
       const result: any = await this.authFirebase.createUserWithEmailAndPassword(data.email, data.password);
-
+      const timeResponse = await this.timeZoneService.getTimeByZone('America/Guayaquil');
+      const dateTime = timeResponse.message === 'Ok' ? timeResponse.data.datetime : timeResponse.data;
       // Crear documento en Firestore con la misma UID y los datos del formulario
       const userRef = this.fireStore.collection('users').doc(result.user.uid);
       await userRef.set({
@@ -96,7 +99,7 @@ export class AuthFirebaseService {
         telefono: data.phone,
         rol: data.role,
         avatar: data.avatar,
-        fechaCreacion: new Date()
+        fechaCreacion: dateTime
       })
       response = {
         data: true,

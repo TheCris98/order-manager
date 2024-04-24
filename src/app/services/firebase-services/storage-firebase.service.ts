@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
-import { ErrorsFirebaseService } from './errors-firebase.service';
-import { FirebaseError, Response } from '../models/navigation';
+import { ErrorsFirebaseService } from '../core-services/errors-firebase.service';
+import { FirebaseError, Response } from '../../models/navigation';
 
 @Injectable({
   providedIn: 'root'

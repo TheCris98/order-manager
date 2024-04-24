@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
-import { LocalStorageService } from '../services/local-storage.service';
+import { LocalStorageService } from '../services/core-services/local-storage.service';
 import { UserData } from '../models/navigation';
-import { AuthFirebaseService } from '../services/auth-firebase.service';
+import { AuthFirebaseService } from '../services/firebase-services/auth-firebase.service';
 
 @Component({
   selector: 'app-folder',
@@ -49,9 +49,10 @@ export class FolderPage implements OnInit {
   logOut() {
     // Aquí tu lógica para cerrar sesión
     console.log('Cerrando sesión...');
-    this.localStorage.removeLocalStorageItem('user')
+    this.localStorage.removeLocalStorageItem('user');
+    this.localStorage.removeLocalStorageItem('cart');
     // Por ejemplo, redirigir al usuario a la página de inicio de sesión:
-    this.router.navigate(['/login'])
+    this.router.navigate(['/login']);
   }
 
 }

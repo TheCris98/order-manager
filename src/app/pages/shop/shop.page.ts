@@ -2,10 +2,10 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonSearchbar } from '@ionic/angular';
 import { Categorie } from 'src/app/models/navigation';
-import { AlertsService } from 'src/app/services/alerts.service';
-import { CategoriesFirebaseService } from 'src/app/services/categories-firebase.service';
-import { ProductsFirebaseService } from 'src/app/services/products-firebase.service';
-import { SuscriptionManagerService } from 'src/app/services/suscription-manager.service';
+import { AlertsService } from 'src/app/services/core-services/alerts.service';
+import { CategoriesFirebaseService } from 'src/app/services/firebase-services/categories-firebase.service';
+import { ProductsFirebaseService } from 'src/app/services/firebase-services/products-firebase.service';
+import { SuscriptionManagerService } from 'src/app/services/core-services/suscription-manager.service';
 
 @Component({
   selector: 'app-shop',
@@ -30,12 +30,9 @@ export class ShopPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.suscriptionService.unsubscribe(this);
+    this.suscriptionService.unsubscribeAll(this);
   }
 
-  /* TODO: Manejar las suscripciones eficientemente para no tener comportamientos raros
-  Disclaimer: Aparentemente será mejor usar BehaviorSubjects en otras partes de la aplicación
-  */
   getCategories() {
     const subscription = this.categoriesService.getCategories().subscribe({
       next: (data) => {
@@ -45,7 +42,7 @@ export class ShopPage implements OnInit, OnDestroy {
         this.alertService.presentCustomToast(error.data);
       }
     });
-    this.suscriptionService.add(this, subscription);
+    this.suscriptionService.add(this, subscription,'categories');
   }
 
   openProducts(id: string) {
@@ -68,7 +65,7 @@ export class ShopPage implements OnInit, OnDestroy {
           this.alertService.presentCustomToast(error.data);
         }
       })
-      this.suscriptionService.add(this, suscription);
+      this.suscriptionService.add(this, suscription,'searchItem');
     }
   }
 }

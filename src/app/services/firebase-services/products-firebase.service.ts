@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable, catchError, map, of, throwError } from 'rxjs';
-import { Product, Response } from '../models/navigation';
-import { ErrorsFirebaseService } from './errors-firebase.service';
+import { OrderDetail, Response } from '../../models/navigation';
+import { ErrorsFirebaseService } from '../core-services/errors-firebase.service';
+import { TimeZoneService } from '../core-services/time-zone.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductsFirebaseService {
 
-  constructor(private fireStore: AngularFirestore, private errorFirebase: ErrorsFirebaseService) { }
+  constructor(
+    private fireStore: AngularFirestore, 
+    private errorFirebase: ErrorsFirebaseService,
+  ) { }
 
   getProductsByCategory(categoryId: string): Observable<Response> {
     return this.fireStore.collection('products', ref => ref
@@ -19,22 +23,27 @@ export class ProductsFirebaseService {
       .snapshotChanges()
       .pipe(
         map(actions => {
-          const products = actions.map(a => {
+          const details = actions.map(a => {
             const data = a.payload.doc.data() as any;
             const uid = a.payload.doc.id;
-            const product: Product = {
-              uid: uid,
-              name: data.nombre,
-              description: data.descripcion,
-              price: data.precio,
-              image: data.imagen,
-              categorie: data.categoria,
-              state: data.estado,
-              stock: data.stock
+            const detail: OrderDetail = {
+              product: {
+                uid: uid,
+                name: data.nombre,
+                description: data.descripcion,
+                price: data.precio,
+                image: data.imagen,
+                categorie: data.categoria,
+                state: data.estado,
+                stock: data.stock
+              },
+              quantity: 0,
+              indication: '',
+              requestedDate: new Date()
             };
-            return product;
+            return detail;
           });
-          return { data: products, message: 'Ok' };
+          return { data: details, message: 'Ok' };
         }),
         catchError(error => {
           console.error(error);
@@ -54,19 +63,24 @@ export class ProductsFirebaseService {
           const products = actions.map(a => {
             const data = a.payload.doc.data() as any;
             const uid = a.payload.doc.id;
-            const product: Product = {
-              uid: uid,
-              name: data.nombre,
-              description: data.descripcion,
-              price: data.precio,
-              image: data.imagen,
-              categorie: data.categoria,
-              state: data.estado,
-              stock: data.stock
+            const product: OrderDetail = {
+              product: {
+                uid: uid,
+                name: data.nombre,
+                description: data.descripcion,
+                price: data.precio,
+                image: data.imagen,
+                categorie: data.categoria,
+                state: data.estado,
+                stock: data.stock
+              },
+              quantity: 0,
+              indication: '',
+              requestedDate: new Date()
             };
             return product;
           });
-          if(products.length === 0){
+          if (products.length === 0) {
             return { data: this.errorFirebase.parseError('custom/not-item-found'), message: 'Error' };
           }
           return { data: products, message: 'Ok' };

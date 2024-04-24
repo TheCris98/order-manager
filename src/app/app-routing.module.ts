@@ -5,12 +5,12 @@ import { AuthGuard } from './security/auth.guard';
 const routes: Routes = [
   {
     path: '',
-    canActivate : [AuthGuard],
+    canActivate: [AuthGuard],
     loadChildren: () => import('./folder/folder.module').then(m => m.FolderPageModule),
   },
   {
     path: 'folder',
-    canActivate : [AuthGuard],
+    canActivate: [AuthGuard],
     loadChildren: () => import('./folder/folder.module').then(m => m.FolderPageModule)
   },
   {
@@ -20,6 +20,11 @@ const routes: Routes = [
   {
     path: 'register',
     loadChildren: () => import('./components/register/register.module').then(m => m.RegisterPageModule)
+  },
+  {
+    path: 'cart',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./pages/shop/cart/cart.module').then(m => m.CartPageModule)
   },
   {
     path: '**',

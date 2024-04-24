@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FirebaseError } from '../models/navigation';
+import { FirebaseError } from '../../models/navigation';
 
 @Injectable({
   providedIn: 'root'
@@ -60,7 +60,9 @@ export class ErrorsFirebaseService {
         return { message: "Tamaño de archivo incorrecto.", color: 'danger', icon: 'file-tray-full' };
       //Personalizados
       case 'custom/not-item-found':
-        return { message: "No existen coincidencias.", color: 'warning', icon: 'help-circle' };
+        return { message: "No existen coincidencias.", color: 'warning', icon: 'alert-circle' };
+      case 'custom/not-id-found':
+        return { message: "Identificador erróneo.", color: 'danger', icon: 'alert-circle' };
       default:
         return { message: "Error desconocido.", color: 'medium', icon: 'alert-circle' };
     }

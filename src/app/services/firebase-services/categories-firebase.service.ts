@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Categorie, Response } from '../models/navigation';
+import { Categorie, Response } from '../../models/navigation';
 import { Observable, catchError, map, of } from 'rxjs';
-import { ErrorsFirebaseService } from './errors-firebase.service';
+import { ErrorsFirebaseService } from '../core-services/errors-firebase.service';
 
 @Injectable({
   providedIn: 'root'
@@ -32,7 +32,6 @@ export class CategoriesFirebaseService {
           data: categories,
           message: 'Ok'
         }
-        console.log('ok', response);
         return response; // Respuesta exitosa
       }),
       catchError(error => {
@@ -41,7 +40,6 @@ export class CategoriesFirebaseService {
           data: this.errorFirebase.parseError(error.code),
           message: 'Error'
         }
-        console.log('error', response);
         return of(response);
       })
     );

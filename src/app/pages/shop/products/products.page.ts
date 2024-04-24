@@ -1,9 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Product } from 'src/app/models/navigation';
-import { AlertsService } from 'src/app/services/alerts.service';
-import { ProductsFirebaseService } from 'src/app/services/products-firebase.service';
-import { SuscriptionManagerService } from 'src/app/services/suscription-manager.service';
+import { OrderDetail } from 'src/app/models/navigation';
+import { AlertsService } from 'src/app/services/core-services/alerts.service';
+import { ProductsFirebaseService } from 'src/app/services/firebase-services/products-firebase.service';
+import { SuscriptionManagerService } from 'src/app/services/core-services/suscription-manager.service';
+import { LocalStorageService } from 'src/app/services/core-services/local-storage.service';
+import { TimeZoneService } from 'src/app/services/core-services/time-zone.service';
 
 @Component({
   selector: 'app-products',
@@ -12,13 +14,16 @@ import { SuscriptionManagerService } from 'src/app/services/suscription-manager.
 })
 export class ProductsPage implements OnInit, OnDestroy {
 
-  products: Product[] = [];
+  products: OrderDetail[] = [];
+  dateTime: Date = new Date();
 
   constructor(
     private productService: ProductsFirebaseService,
     private route: ActivatedRoute,
     private alertService: AlertsService,
     private suscriptionService: SuscriptionManagerService,
+    private localStorageService: LocalStorageService,
+    private timeZoneService: TimeZoneService
   ) { }
 
   ngOnInit() {
@@ -26,25 +31,48 @@ export class ProductsPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.suscriptionService.unsubscribe(this);
+    this.suscriptionService.unsubscribeAll(this);
   }
 
-  /* TODO: Agregar funcionalidad para el carrito (Terminar con este componente en pocas) */
   getProducts() {
     if (history.state.products) {
-      this.products = history.state.products
+      this.products = history.state.products;
     } else {
       const id = this.route.snapshot.paramMap.get('id') as string;
       const subscription = this.productService.getProductsByCategory(id).subscribe({
         next: (data) => {
           this.products = data.data;
-          console.log(this.products);
         },
         error: (error) => {
           this.alertService.presentCustomToast(error.data);
         }
       });
-      this.suscriptionService.add(this, subscription);
+      this.suscriptionService.add(this, subscription, 'products');
+    }
+  }
+
+  async addToCart(element: OrderDetail) {
+    const response = await this.timeZoneService.getTimeByZone('America/Guayaquil');
+    this.dateTime = response.message === 'Ok' ? response.data.datetime : response.data;
+    var cart = this.localStorageService.getLocalStorageItem('cart') || [];
+    const itemIndex = cart.findIndex((item: OrderDetail) => item.product.uid === element.product.uid);
+    if (itemIndex > -1) {
+      this.alertService.presentConfirmation(
+        '¿Desea reemplazarlo?',
+        `Ya tiene ${cart[itemIndex].quantity} unidades en la orden.
+        Nueva cantidad: ${element.quantity}`,
+        () => {
+          cart[itemIndex].quantity = element.quantity;
+          cart[itemIndex].requestedDate = this.dateTime
+          this.localStorageService.setLocalStorageItem('cart', cart);
+          this.alertService.presentSimpleToast("Se ha actualizado tu orden", 1500);
+        }
+      );
+    } else {
+      element.requestedDate = this.dateTime
+      cart.push(element);
+      this.localStorageService.setLocalStorageItem('cart', cart);
+      this.alertService.presentSimpleToast('Se ha añadido a tu orden', 1500);
     }
   }
 }
