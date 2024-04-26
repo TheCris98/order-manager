@@ -42,7 +42,7 @@ export class ShopPage implements OnInit, OnDestroy {
         this.alertService.presentCustomToast(error.data);
       }
     });
-    this.suscriptionService.add(this, subscription,'categories');
+    this.suscriptionService.add(this, subscription,'getCategories');
   }
 
   openProducts(id: string) {

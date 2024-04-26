@@ -47,13 +47,13 @@ export class ProductsPage implements OnInit, OnDestroy {
           this.alertService.presentCustomToast(error.data);
         }
       });
-      this.suscriptionService.add(this, subscription, 'products');
+      this.suscriptionService.add(this, subscription, 'getProducts');
     }
   }
 
   async addToCart(element: OrderDetail) {
     const response = await this.timeZoneService.getTimeByZone('America/Guayaquil');
-    this.dateTime = response.message === 'Ok' ? response.data.datetime : response.data;
+    this.dateTime = response.message === 'Ok' ? response.data : response.data;
     var cart = this.localStorageService.getLocalStorageItem('cart') || [];
     const itemIndex = cart.findIndex((item: OrderDetail) => item.product.uid === element.product.uid);
     if (itemIndex > -1) {

@@ -8,9 +8,31 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">orders</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-list (click)="openDetails(element)" class="orders" *ngFor="let element of orderItems;let i = index">
+    <ion-item>
+      <ion-avatar slot="start">
+        <h1>{{i+1}}</h1>
+      </ion-avatar>
+      <!--  <ion-badge slot="start" *ngIf="element.notificacion">!</ion-badge> -->
+      <ion-label>
+        <h2>{{element.orderDate | date : 'dd/MM/yyyy, h:mm a'}}</h2>
+        <ng-container>
+          <h3>Mesa: {{element.table.number}}
+          </h3>
+        </ng-container>
+        <!-- <ng-container *ngIf="element.idMesa>0; else clienteBlock">
+          <h3>Mesa: {{ element.idMesa }}</h3>
+        </ng-container>
+        <ng-template #clienteBlock>
+          <h3>Cliente: {{ element.idMesa }}</h3>
+        </ng-template> -->
+        <h3>N° Orden: {{ element.uid }}</h3>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+  <!-- TODO: Crear el modal para ver los detalles
+  Opciones:
+  1. Directo con las etiquetas correspondientes (Esto limitará la reutilización)
+  2. Crear un componente en el que se puedan configurar los modales para diferentes vistas y módulos
+  -->
 </ion-content>

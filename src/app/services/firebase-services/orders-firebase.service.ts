@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable, catchError, from, map, of, switchMap } from 'rxjs';
-import { Order, Response } from 'src/app/models/navigation';
+import { Observable, catchError, combineLatest, from, map, of, switchMap } from 'rxjs';
+import { Order, OrderDetail, Product, Response } from 'src/app/models/navigation';
 import { ErrorsFirebaseService } from '../core-services/errors-firebase.service';
 
 @Injectable({
@@ -60,7 +60,8 @@ export class OrdersFirebaseService {
       // Guardar la orden sin incluir el UID como atributo
       transaction.set(orderRef.ref, {
         totalAmount: order.totalAmount,
-        orderDate: order.orderDate
+        orderDate: order.orderDate,
+        orderedBy: order.orderedBy.uid
       });
 
       // Guardar cada detalle de la orden
@@ -120,17 +121,12 @@ export class OrdersFirebaseService {
     // Recuperar el documento de la orden primero
     return orderRef.get().pipe(
       switchMap(docSnapshot => {
-        if (!docSnapshot.exists) {
-          return of({ data: false, message: 'Order not found.' });
-        }
-
         // Datos existentes de la orden
         const existingOrderData = docSnapshot.data() as Order;
         const updatedTotal = existingOrderData.totalAmount + order.totalAmount;
 
         // Actualizar el total de la orden
         const updateTotal = orderRef.update({ totalAmount: updatedTotal });
-
         // Manejar detalles de la orden
         return from(updateTotal).pipe(
           switchMap(() => {
@@ -147,12 +143,10 @@ export class OrdersFirebaseService {
                     product: detail.product
                   });
                 });
-
                 return from(Promise.all(detailsUpdates)).pipe(
-                  map(() => ({ data: true, message: 'Order updated successfully' })),
+                  map(() => ({ data: true, message: 'Ok' })),
                   catchError(error => {
-                    console.error('Failed to add new order details:', error);
-                    return of({ data: false, message: 'Failed to add new order details.' });
+                    return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
                   })
                 );
               })
@@ -164,5 +158,68 @@ export class OrdersFirebaseService {
         return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
       })
     );
+  }
+
+  getOrdersByCustomer(customerID: string): Observable<Response> {
+    /* TODO: De momento obtendré todas las órdenes del solicitante, luego defino que 
+    estrategia usar para establecer si una orden está finalizada o aún en curso.
+    Opciones:
+    1. Agregar otro parámetro a la interfaz Order para poner 'status'='A' o 'F'
+    2. Analizar todos los detalles y si todos son 'status'='F' entonces la orden se descarta, sino, se toma en cuenta la orden con solo los detalles en != 'F'
+    */
+    return this.firestore.collection<Order>('orders', ref => ref.where('orderedBy', '==', customerID))
+      .snapshotChanges()
+      .pipe(
+        switchMap(actions => {
+          if (actions.length === 0) {
+            return of({ data: [], message: 'No orders found' });
+          }
+          // Procesar cada acción para mapear los datos del documento y subcolecciones
+          const orderObservables = actions.map(a => {
+            const orderData = a.payload.doc.data() as Order;
+            const date = orderData.orderDate as any;
+            const orderID = a.payload.doc.id;
+
+            // Recuperar detalles y su producto asociado
+            const detailsWithProduct$ = this.firestore.collection<OrderDetail>(`${a.payload.doc.ref.path}/details`).snapshotChanges().pipe(
+              switchMap(detailActions => combineLatest(
+                detailActions.map(detailAction => {
+                  const detailData = detailAction.payload.doc.data() as OrderDetail;
+                  const detailID = detailAction.payload.doc.id;
+                  // Asumimos que hay un solo documento en la colección de productos
+                  return this.firestore.collection(`${detailAction.payload.doc.ref.path}/product`).valueChanges().pipe(
+                    map(products => ({
+                      ...detailData,
+                      product: products[0], // Tomar el primer producto
+                      uid: detailID
+                    }))
+                  );
+                })
+              ))
+            );
+
+            const table$ = this.firestore.collection(`${a.payload.doc.ref.path}/table`).valueChanges({ idField: 'uid' });
+            const orderedBy$ = this.firestore.collection(`${a.payload.doc.ref.path}/orderedBy`).valueChanges({ idField: 'uid' });
+
+            return combineLatest([detailsWithProduct$, table$, orderedBy$]).pipe(
+              map(([details, table, orderedBy]) => ({
+                ...orderData,
+                orderDate: date.toDate(),
+                uid: orderID,
+                details: details as OrderDetail[],
+                table: table.length > 0 ? table[0] : {},
+                orderedBy: orderedBy.length > 0 ? orderedBy[0] : {}
+              }))
+            );
+          });
+
+          return combineLatest(orderObservables).pipe(
+            map(orders => ({ data: orders, message: 'Ok' }))
+          );
+        }),
+        catchError(error => {
+          return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
+        })
+      );
   }
 }

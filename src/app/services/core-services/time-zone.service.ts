@@ -11,10 +11,13 @@ export class TimeZoneService {
   async getTimeByZone(zone: string): Promise<Response> {
     const url = `http://worldtimeapi.org/api/timezone/${zone}`;
     try {
-      const response = await this.http.get(url).toPromise();
-      return { data: response, message: 'Ok' };
+      const response = await this.http.get(url).toPromise() as any;
+      const date = new Date(response.datetime);
+      return { data: date, message: 'Ok' };
     } catch (error) {
-      return { data: new Date(), message: 'Error' };
+      const timestamp = new Date();
+      return { data: timestamp, message: 'Error' };
     }
   }
+
 }

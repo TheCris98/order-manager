@@ -12,18 +12,18 @@ import { AuthFirebaseService } from 'src/app/services/firebase-services/auth-fir
 })
 export class LoginPage implements OnInit {
   loginForm: UntypedFormGroup;
-  showPassword : boolean = false;
+  showPassword: boolean = false;
   constructor(
     private loginFormBuilder: UntypedFormBuilder,
     private authFirebaseSerive: AuthFirebaseService,
-    private alertService : AlertsService,
-    private router : Router,
+    private alertService: AlertsService,
+    private router: Router,
   ) {
     this.loginForm = this.loginFormBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
     })
-    if(this.authFirebaseSerive.loadUserFromLocalStorage()){
+    if (this.authFirebaseSerive.loadUserFromLocalStorage()) {
       this.router.navigate(['/folder'])
     }
   }
@@ -31,7 +31,7 @@ export class LoginPage implements OnInit {
   ngOnInit() {
   }
   async login() {
-    const data : LoginData = this.loginForm.value;
+    const data: LoginData = this.loginForm.value;
     const response = await this.authFirebaseSerive.login(data);
     if (response.message === 'Ok') {
       // Navegar a la página principal

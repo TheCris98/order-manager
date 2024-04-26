@@ -4,6 +4,7 @@ import { filter } from 'rxjs';
 import { LocalStorageService } from '../services/core-services/local-storage.service';
 import { UserData } from '../models/navigation';
 import { AuthFirebaseService } from '../services/firebase-services/auth-firebase.service';
+import { SuscriptionManagerService } from '../services/core-services/suscription-manager.service';
 
 @Component({
   selector: 'app-folder',
@@ -12,7 +13,7 @@ import { AuthFirebaseService } from '../services/firebase-services/auth-firebase
 })
 export class FolderPage implements OnInit {
   public folder!: string;
-  user : UserData = this.authFirebaseService.loadUserFromLocalStorage();
+  user: UserData = this.authFirebaseService.loadUserFromLocalStorage();
   public appPages = [
     { title: 'Perfil', url: 'profile', icon: 'person-circle' },
     { title: 'Órdenes', url: 'orders', icon: 'list' },
@@ -25,7 +26,12 @@ export class FolderPage implements OnInit {
     { title: 'Cocina', url: '/folder/kitchen', icon: 'flame' },*/
     { title: 'Log Out', url: 'login', icon: 'log-out', special: true },
   ];
-  constructor(private router: Router, private authFirebaseService: AuthFirebaseService, private localStorage : LocalStorageService) {
+  constructor(
+    private router: Router,
+    private authFirebaseService: AuthFirebaseService,
+    private localStorage: LocalStorageService,
+    private subscriptionService: SuscriptionManagerService
+  ) {
   }
 
   ngOnInit() {
@@ -52,6 +58,7 @@ export class FolderPage implements OnInit {
     this.localStorage.removeLocalStorageItem('user');
     this.localStorage.removeLocalStorageItem('cart');
     // Por ejemplo, redirigir al usuario a la página de inicio de sesión:
+    this.subscriptionService.finishSubscriptions();
     this.router.navigate(['/login']);
   }
 

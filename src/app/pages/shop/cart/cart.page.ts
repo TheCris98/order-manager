@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Order, OrderDetail, Table } from 'src/app/models/navigation';
 import { AlertsService } from 'src/app/services/core-services/alerts.service';
 import { LocalStorageService } from 'src/app/services/core-services/local-storage.service';
@@ -36,7 +37,8 @@ export class CartPage implements OnInit, OnDestroy {
     private subscriptionService: SuscriptionManagerService,
     private timeZoneService: TimeZoneService,
     private orderService: OrdersFirebaseService,
-    private authService: AuthFirebaseService
+    private authService: AuthFirebaseService,
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -65,7 +67,7 @@ export class CartPage implements OnInit, OnDestroy {
         this.alertService.presentCustomToast(error.data);
       }
     });
-    this.subscriptionService.add(this, subscription, 'tables');
+    this.subscriptionService.add(this, subscription, 'getTables');
   }
 
   getTotalAmount() {
@@ -103,7 +105,6 @@ export class CartPage implements OnInit, OnDestroy {
     this.getCartItems()
   }
 
-  /* TODO: Generar la Orden y almacenarla (TERMINO CON ESTO Y VEO COMO ENCENDER EL PC POR MI CUENTA)*/
   async sendOrder() {
     this.alertService.presentConfirmation(
       '¿Finalizar Orden?',
@@ -112,7 +113,7 @@ export class CartPage implements OnInit, OnDestroy {
         //AQUI REALIZAREMOS OPERACIONES ASÍNCRONAS PARA PODER ESTABLECER VALORES DEL MAESTRO
         //Se obtiene la hora a la que se ordena el pedido
         const response = await this.timeZoneService.getTimeByZone('America/Guayaquil');
-        this.dateTime = response.message === 'Ok' ? response.data.datetime : response.data;
+        this.dateTime = response.message === 'Ok' ? response.data : response.data;
         //Se genera el ID de la orden, contemplando si se ha ingresado un ID
         if (this.orderID === '') {
           this.orderID = await this.orderService.createOrder();
@@ -147,7 +148,7 @@ export class CartPage implements OnInit, OnDestroy {
     }
     const subscription = this.orderService.saveOrder(order).subscribe({
       next: (data) => {
-        this.alertService.presentSimpleToast('Orden realizada con éxito');
+        this.exit('Orden realizada con éxito');
       },
       error: (error) => {
         this.alertService.presentCustomToast(error.data);
@@ -158,7 +159,7 @@ export class CartPage implements OnInit, OnDestroy {
 
   /* Este para agregar más detalles a una orden */
   updateOrder() {
-    /* const order: Order = {
+    const order: Order = {
       uid: this.orderID,
       details: this.cartItems,
       orderDate: this.dateTime,
@@ -168,12 +169,19 @@ export class CartPage implements OnInit, OnDestroy {
     }
     const subscription = this.orderService.updateOrder(order).subscribe({
       next: (data)=>{
-        this.alertService.presentSimpleToast('Productos agregados con éxito');
+        this.exit('Productos agregados con éxito');
       },
       error: (error)=>{
         this.alertService.presentCustomToast(error.data);
       }
     })
-    this.subscriptionService.add(this,subscription,'saveOrder');*/
+    this.subscriptionService.add(this,subscription,'updateOrder');
   } 
+
+  exit(message: string){
+    this.alertService.presentSimpleToast(message);
+    this.localStorageService.removeLocalStorageItem('cart');
+    this.getCartItems()
+    this.router.navigate(['/folder/orders']);
+  }
 }

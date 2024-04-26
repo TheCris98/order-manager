@@ -30,4 +30,19 @@ export class SuscriptionManagerService {
       .filter(key => key.startsWith(prefix))
       .forEach(key => this.unsubscribe(key));
   }
+
+  finishSubscriptions() {
+    // Iterar sobre todas las claves del mapa
+    this.subscriptionsMap.forEach((subscriptions, key) => {
+      // Iterar sobre cada suscripción del array
+      subscriptions.forEach(subscription => {
+        // Comprobar si la suscripción está activa antes de desuscribir
+        if (!subscription.closed) {
+          subscription.unsubscribe();
+        }
+      });
+      // Una vez desuscritas todas las suscripciones de la clave, se puede optar por borrar el array
+      this.subscriptionsMap.set(key, []);
+    });
+  }
 }

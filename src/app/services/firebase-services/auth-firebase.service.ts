@@ -87,7 +87,7 @@ export class AuthFirebaseService {
       // Crear usuario con email y password para autenticación
       const result: any = await this.authFirebase.createUserWithEmailAndPassword(data.email, data.password);
       const timeResponse = await this.timeZoneService.getTimeByZone('America/Guayaquil');
-      const dateTime = timeResponse.message === 'Ok' ? timeResponse.data.datetime : timeResponse.data;
+      const dateTime = timeResponse.message === 'Ok' ? timeResponse.data : timeResponse.data;
       // Crear documento en Firestore con la misma UID y los datos del formulario
       const userRef = this.fireStore.collection('users').doc(result.user.uid);
       await userRef.set({
