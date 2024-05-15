@@ -53,6 +53,7 @@ export class OrdersFirebaseService {
     );
   }
 
+  /* TODO: Actualizar el stock del producto */
   saveOrder(order: Order): Observable<Response> {
     return from(this.firestore.firestore.runTransaction(async transaction => {
       const orderRef = this.firestore.collection('orders').doc(order.uid);
@@ -71,7 +72,8 @@ export class OrdersFirebaseService {
         transaction.set(detailRef.ref, {
           quantity: detail.quantity,
           indication: detail.indication,
-          requestedDate: detail.requestedDate
+          requestedDate: detail.requestedDate,
+          state: detail.state
         });
 
         // Guardar el producto asociado al detalle en su subcolección
@@ -115,45 +117,52 @@ export class OrdersFirebaseService {
     );
   }
 
-  /* TODO: Arreglar esta función, se va en bucle, me tocará hacerla a mi mismo */
   updateOrder(order: Order): Observable<Response> {
-    const orderRef = this.firestore.doc(`orders/${order.uid}`);
-    // Recuperar el documento de la orden primero
-    return orderRef.get().pipe(
-      switchMap(docSnapshot => {
-        // Datos existentes de la orden
-        const existingOrderData = docSnapshot.data() as Order;
-        const updatedTotal = existingOrderData.totalAmount + order.totalAmount;
+    return from(this.firestore.firestore.runTransaction(async transaction => {
+      const orderRef = this.firestore.collection('orders').doc(order.uid).ref;
 
-        // Actualizar el total de la orden
-        const updateTotal = orderRef.update({ totalAmount: updatedTotal });
-        // Manejar detalles de la orden
-        return from(updateTotal).pipe(
-          switchMap(() => {
-            const detailsCollection = orderRef.collection('details');
-            return detailsCollection.get().pipe(
-              switchMap(detailsSnapshot => {
-                let maxDetailIndex = detailsSnapshot.size; // Tamaño actual de detalles
-                const detailsUpdates = order.details.map((detail, index) => {
-                  const newDetailId = `${order.uid}-${maxDetailIndex + index + 1}`;
-                  return detailsCollection.doc(newDetailId).set({
-                    quantity: detail.quantity,
-                    indication: detail.indication,
-                    requestedDate: detail.requestedDate,
-                    product: detail.product
-                  });
-                });
-                return from(Promise.all(detailsUpdates)).pipe(
-                  map(() => ({ data: true, message: 'Ok' })),
-                  catchError(error => {
-                    return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
-                  })
-                );
-              })
-            );
-          })
-        );
-      }),
+      // Obtener el documento de la orden
+      const orderDoc = await transaction.get(orderRef);
+      if (!orderDoc.exists) {
+        throw new Error('Order not found');
+      }
+
+      // Actualizar el total del monto de la orden
+      const currentOrderData = orderDoc.data() as Order;
+      const newTotalAmount = currentOrderData.totalAmount + order.totalAmount;
+      transaction.update(orderRef, { totalAmount: newTotalAmount });
+
+      // Obtener la colección de detalles de la orden existente
+      const detailsRef = orderRef.collection('details');
+      const existingDetailsSnapshot = await detailsRef.get();
+      const existingDetailsCount = existingDetailsSnapshot.size;
+
+      // Agregar los nuevos detalles a la subcolección `details`
+      for (const detail of order.details) {
+        const detailID = `${order.uid}-${existingDetailsCount + 1}`;
+        const detailRef = detailsRef.doc(detailID);
+        transaction.set(detailRef, {
+          indication: detail.indication,
+          quantity: detail.quantity,
+          requestedDate: detail.requestedDate,
+          state: detail.state
+        });
+
+        // Guardar el producto asociado al detalle en su subcolección
+        const productRef = detailRef.collection('product').doc(detail.product.uid);
+        transaction.set(productRef, {
+          name: detail.product.name,
+          description: detail.product.description,
+          price: detail.product.price,
+          image: detail.product.image,
+          categorie: detail.product.categorie,
+          state: detail.product.state,
+          stock: detail.product.stock
+        });
+      }
+
+      return { data: true, message: 'Ok' };
+    })).pipe(
       catchError(error => {
         return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
       })
@@ -221,5 +230,28 @@ export class OrdersFirebaseService {
           return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
         })
       );
+  }
+
+  deleteOrderDetail(orderUid: string, detailUid: string): Observable<Response> {
+    return from(this.firestore.firestore.runTransaction(async transaction => {
+      const orderRef = this.firestore.collection('orders').doc(orderUid);
+
+      // Obtener el documento de la orden
+      const orderDoc = await transaction.get(orderRef.ref);
+      if (!orderDoc.exists) {
+        throw new Error('Order not found');
+      }
+
+      // Eliminar el detalle especificado
+      const detailRef = orderRef.collection('details').doc(detailUid);
+      transaction.delete(detailRef.ref);
+
+      return { data: true, message: 'Ok' };
+    })).pipe(
+      catchError(error => {
+        console.error('Transaction failed: ', error);
+        return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
+      })
+    );
   }
 }

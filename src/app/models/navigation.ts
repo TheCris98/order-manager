@@ -39,10 +39,12 @@ export interface Product {
 }
 
 export interface OrderDetail {
+    uid: string;
     product: Product;
     quantity: number;
     indication: string;
     requestedDate: Date;
+    state: string;
 }
 
 export interface Table {

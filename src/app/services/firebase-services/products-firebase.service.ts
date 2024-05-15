@@ -11,7 +11,7 @@ import { TimeZoneService } from '../core-services/time-zone.service';
 export class ProductsFirebaseService {
 
   constructor(
-    private fireStore: AngularFirestore, 
+    private fireStore: AngularFirestore,
     private errorFirebase: ErrorsFirebaseService,
   ) { }
 
@@ -35,11 +35,13 @@ export class ProductsFirebaseService {
                 image: data.imagen,
                 categorie: data.categoria,
                 state: data.estado,
-                stock: data.stock
+                stock: data.stock,
               },
+              uid: '',
               quantity: 0,
               indication: '',
-              requestedDate: new Date()
+              requestedDate: new Date(),
+              state: 'S'
             };
             return detail;
           });
@@ -74,9 +76,11 @@ export class ProductsFirebaseService {
                 state: data.estado,
                 stock: data.stock
               },
+              uid: '',
               quantity: 0,
               indication: '',
-              requestedDate: new Date()
+              requestedDate: new Date(),
+              state: 'S'
             };
             return product;
           });

@@ -1,0 +1,17 @@
+ion-item-divider {
+    --background: #f8f8f8;
+    --color: #666;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+ion-avatar img {
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+ion-item-options {
+    ion-item-option {
+        width: 70px;
+    }
+}

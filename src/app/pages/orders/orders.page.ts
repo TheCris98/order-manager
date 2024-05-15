@@ -1,9 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { ModalWrapperComponent } from 'src/app/components/modal-wrapper/modal-wrapper.component';
 import { Order } from 'src/app/models/navigation';
 import { AlertsService } from 'src/app/services/core-services/alerts.service';
 import { SuscriptionManagerService } from 'src/app/services/core-services/suscription-manager.service';
 import { AuthFirebaseService } from 'src/app/services/firebase-services/auth-firebase.service';
 import { OrdersFirebaseService } from 'src/app/services/firebase-services/orders-firebase.service';
+import { OrderDetailsComponent } from './components/order-details/order-details.component';
 
 @Component({
   selector: 'app-orders',
@@ -16,7 +19,8 @@ export class OrdersPage implements OnInit, OnDestroy {
     private orderService: OrdersFirebaseService,
     private authService: AuthFirebaseService,
     private subscriptionService: SuscriptionManagerService,
-    private alertService: AlertsService
+    private alertService: AlertsService,
+    private modalController: ModalController,
   ) { }
 
   ngOnInit() {
@@ -40,7 +44,15 @@ export class OrdersPage implements OnInit, OnDestroy {
     this.subscriptionService.add(this, subscription, 'getOrders');
   }
 
-  openDetails(element: Order) {
-    
+  async openDetails(element: Order) {
+    const modal = await this.modalController.create({
+      component: ModalWrapperComponent,
+      componentProps: {
+        component: OrderDetailsComponent,
+        componentProps: { order: element },
+        title: 'Detalle de la Orden'
+      }
+    });
+    return await modal.present();
   }
 }
