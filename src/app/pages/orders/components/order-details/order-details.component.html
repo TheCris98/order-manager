@@ -21,7 +21,7 @@
             <ion-label>
               <h2>{{ detail.product.name }}</h2>
               <p><strong>Cantidad:</strong> {{ detail.quantity }}</p>
-              <p><strong>Indicación:</strong> {{ detail.indication }}</p>
+              <p *ngIf="detail.indication != ''"><strong>Indicación:</strong> {{ detail.indication }}</p>
               <p><strong>Fecha-Hora Solicitada:</strong> {{ detail.requestedDate | date: 'dd/MM/yyyy, h:mm a' }}</p>
               <p [ngStyle]="getStatusStyle(detail)">
                 <strong>Estado:</strong> {{ getOrderStatus(detail) }}
@@ -41,3 +41,4 @@
     </ion-card-content>
   </ion-card>
 </ion-content>
+

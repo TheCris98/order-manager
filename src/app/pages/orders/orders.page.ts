@@ -32,7 +32,7 @@ export class OrdersPage implements OnInit, OnDestroy {
   }
 
   getOrderItems() {
-    const subscription = this.orderService.getOrdersByCustomer(this.authService.loadUserFromLocalStorage().uid).subscribe({
+    const subscription = this.orderService.getBasicOrdersByCustomer(this.authService.loadUserFromLocalStorage().uid).subscribe({
       next: (data) => {
         this.orderItems = data.data;
         console.log('orders', this.orderItems)
@@ -44,12 +44,12 @@ export class OrdersPage implements OnInit, OnDestroy {
     this.subscriptionService.add(this, subscription, 'getOrders');
   }
 
-  async openDetails(element: Order) {
+  async openDetails(element: string) {
     const modal = await this.modalController.create({
       component: ModalWrapperComponent,
       componentProps: {
         component: OrderDetailsComponent,
-        componentProps: { order: element },
+        componentProps: { orderID: element },
         title: 'Detalle de la Orden'
       }
     });

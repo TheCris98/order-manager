@@ -28,6 +28,12 @@ export class ModalWrapperComponent implements OnInit {
     const componentFactory = this.componentFactoryResolver.resolveComponentFactory(this.component);
     const componentRef: ComponentRef<any> = this.dynamicComponent.createComponent(componentFactory);
     Object.assign(componentRef.instance, this.componentProps);
+    // Escucha el evento closeModal del componente dinámico
+    if (componentRef.instance.closeModal) {
+      componentRef.instance.closeModal.subscribe(() => {
+        this.close();
+      });
+    }
   }
 
   close() {

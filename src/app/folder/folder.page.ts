@@ -23,7 +23,7 @@ export class FolderPage implements OnInit {
     { title: 'Ventas', url: '/folder/sales', icon: 'time' },
     { title: 'Reportes', url: '/folder/reports', icon: 'bar-chart' },
     { title: 'Gestión', url: '/folder/manage', icon: 'add-circle' },
-    { title: 'Cocina', url: '/folder/kitchen', icon: 'flame' },*/
+    { title: 'Cocina', url: 'kitchen', icon: 'flame' },*/
     { title: 'Log Out', url: 'login', icon: 'log-out', special: true },
   ];
   constructor(
