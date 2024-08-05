@@ -4,9 +4,12 @@
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
+    "copy-notification-icons": "node copy-notification-icons.js",
+    "update-manifest": "node update-manifest.js",
+    "generate-assets": "npx capacitor-assets generate --android",
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build && npm run copy-notification-icons && npm run generate-assets && npm run update-manifest && npx cap sync android && npx cap open android",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"
