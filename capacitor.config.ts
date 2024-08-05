@@ -1,8 +1,8 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
-  appName: 'Order_Manager',
+  appId: 'com.impulseit.order_manager',
+  appName: 'Order Manager',
   webDir: 'www',
   server: {
     androidScheme: 'https'
