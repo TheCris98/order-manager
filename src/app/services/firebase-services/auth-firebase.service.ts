@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { LoginData, RegisterData } from '../../models/auth';
-import { FirebaseError, UserData, Response } from '../../models/navigation';
+import { UserData, Response } from '../../models/navigation';
 import { firstValueFrom } from 'rxjs';
 import { LocalStorageService } from '../core-services/local-storage.service';
 import { ErrorsFirebaseService } from '../core-services/errors-firebase.service';
 import { TimeZoneService } from '../core-services/time-zone.service';
+import { NativeNotificationsService } from '../core-services/native-notifications.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,8 @@ export class AuthFirebaseService {
     private fireStore: AngularFirestore,
     private localStorage: LocalStorageService,
     private errorFirebase: ErrorsFirebaseService,
-    private timeZoneService: TimeZoneService
+    private timeZoneService: TimeZoneService,
+    private notificationService: NativeNotificationsService
   ) { }
 
   async login(data: LoginData): Promise<Response> {
@@ -31,9 +33,8 @@ export class AuthFirebaseService {
       const userDocRef = this.fireStore.doc(`users/${result.user.uid}`).get();
       const userDoc = await firstValueFrom(userDocRef);
       const docData = userDoc.data() as any;
-      // Mapeo explícito a la interfaz UserData
       const userData: UserData = {
-        uid: result.user.uid, // Asumiendo que deseas mantener el UID del usuario
+        uid: result.user.uid,
         email: docData.email,
         name: docData.nombre,
         lastname: docData.apellido,
@@ -41,13 +42,18 @@ export class AuthFirebaseService {
         phone: docData.telefono,
         role: docData.rol,
         avatar: docData.avatar,
-        creationDate: docData.fechaCreacion.toDate(), // Convertir Timestamp de Firestore a Date si es necesario
+        creationDate: docData.fechaCreacion.toDate(),
       };
-      this.localStorage.setLocalStorageItem('user', userData)
+      this.localStorage.setLocalStorageItem('user', userData);
+
+      // Obtener el token después de iniciar sesión y actualizarlo
+      const token = await this.notificationService.getToken();
+      await this.notificationService.saveToken(token, result.user.uid);
+
       response = {
         data: userData,
         message: 'Ok'
-      }
+      };
       return response;
     } catch (error: any) {
       response = {
@@ -57,6 +63,7 @@ export class AuthFirebaseService {
       return response;
     }
   }
+
 
   loadUserFromLocalStorage(): UserData {
     const userJson = this.localStorage.getLocalStorageItem('user')
@@ -114,4 +121,22 @@ export class AuthFirebaseService {
       return response;
     }
   }
+
+  /* private async updateDeviceTokens(userId: string) {
+    console.log("SE VINO XD")
+    const tokenSubscription = this.notificationService.notifications$.subscribe(async (notification: any) => {
+      if (notification && notification.token) {
+        const token = notification.token;
+        const deviceTokensRef = this.fireStore.collection('deviceTokens', ref => ref.where('token', '==', token));
+        const snapshot = await firstValueFrom(deviceTokensRef.get());
+        console.log('XD SI LLEGO AQUI')
+        if (!snapshot.empty) {
+          snapshot.forEach((doc: any) => {
+            doc.ref.update({ userId: userId });
+          });
+        }
+      }
+    });
+    tokenSubscription.unsubscribe(); // Unsubscribe after updating tokens
+  } */
 }

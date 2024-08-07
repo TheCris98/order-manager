@@ -62,3 +62,12 @@ export interface Order {
     orderDate: Date;
     orderedBy: UserData; 
 }
+
+export interface DeviceToken {
+    uid: string; // Unique ID of the document
+    userId: string; // ID of the user
+    token: string; // FCM Token
+    platform: string; // 'android', 'ios', 'web'
+    lastUsed: Date; // Timestamp of the last use
+  }
+  
