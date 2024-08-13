@@ -47,7 +47,6 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
 
   }
 
-  /* TODO: Gestionar el tema de notifiaciones nativas */
   ngOnInit() {
     console.log('Order in ngOnInit:', this.orderID);
     this.getSelectedOrder();
@@ -61,6 +60,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     const subscription = this.orderService.getOrderWithDetails(this.orderID).subscribe({
       next: (data) => {
         this.order = data.data;
+        console.log(this.order)
         if (this.order.details.length === 0) {
           this.closeModal.emit(); // Emite el evento para cerrar el modal
         }

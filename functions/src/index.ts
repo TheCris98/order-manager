@@ -88,10 +88,15 @@ export const sendOrderDetailUpdateNotification = functions.firestore
             title: `${title}.`,
             body: `${productName} ${message}.`,
           },
+          data: {
+            body: `${productName} ${message}.`,
+            title: `${title}.`,
+          },
         };
 
         // Enviar la notificación a todos los tokens del usuario
         const response = await admin.messaging().sendToDevice(tokens, payload);
+
         // Manejar errores de tokens inválidos
         const tokensToRemove = response.results
           .map((result, index) =>
@@ -100,7 +105,7 @@ export const sendOrderDetailUpdateNotification = functions.firestore
 
         await Promise.all(tokensToRemove);
 
-        console.log("Notification sent successfully");
+        console.log("Notification sent successfully", tokens);
         return null;
       } else {
         console.log(`No tokens found for user: ${userId}`);

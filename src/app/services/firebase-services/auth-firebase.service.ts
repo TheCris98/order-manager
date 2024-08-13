@@ -63,8 +63,7 @@ export class AuthFirebaseService {
       return response;
     }
   }
-
-
+  
   loadUserFromLocalStorage(): UserData {
     const userJson = this.localStorage.getLocalStorageItem('user')
     if (userJson) {
@@ -121,22 +120,4 @@ export class AuthFirebaseService {
       return response;
     }
   }
-
-  /* private async updateDeviceTokens(userId: string) {
-    console.log("SE VINO XD")
-    const tokenSubscription = this.notificationService.notifications$.subscribe(async (notification: any) => {
-      if (notification && notification.token) {
-        const token = notification.token;
-        const deviceTokensRef = this.fireStore.collection('deviceTokens', ref => ref.where('token', '==', token));
-        const snapshot = await firstValueFrom(deviceTokensRef.get());
-        console.log('XD SI LLEGO AQUI')
-        if (!snapshot.empty) {
-          snapshot.forEach((doc: any) => {
-            doc.ref.update({ userId: userId });
-          });
-        }
-      }
-    });
-    tokenSubscription.unsubscribe(); // Unsubscribe after updating tokens
-  } */
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable, catchError, combineLatest, from, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, combineLatest, forkJoin, from, map, of, switchMap } from 'rxjs';
 import { Order, OrderDetail, Product, Response, Table, UserData } from 'src/app/models/navigation';
 import { ErrorsFirebaseService } from '../core-services/errors-firebase.service';
 
@@ -252,79 +252,6 @@ export class OrdersFirebaseService {
     );
   }
 
-  getOrdersByCustomer(customerID: string): Observable<Response> {
-    return this.firestore.collection<Order>('orders', ref => ref.where('orderedBy', '==', customerID))
-      .snapshotChanges()
-      .pipe(
-        switchMap(actions => {
-          if (actions.length === 0) {
-            return of({ data: [], message: 'No orders found' });
-          }
-
-          const orderObservables = actions.map(a => {
-            const orderData = a.payload.doc.data() as Order;
-            const date = orderData.orderDate as any;
-            const orderID = a.payload.doc.id;
-
-            // Recuperar detalles y su producto asociado, aplicando el filtro directamente en Firestore
-            const detailsWithProduct$ = this.firestore.collection<OrderDetail>(`${a.payload.doc.ref.path}/details`, ref => ref.where('state', '!=', 'F'))
-              .snapshotChanges()
-              .pipe(
-                switchMap(detailActions => {
-                  if (detailActions.length === 0) {
-                    return of([]);
-                  }
-                  return combineLatest(
-                    detailActions.map(detailAction => {
-                      const detailData = detailAction.payload.doc.data() as OrderDetail;
-                      const detailID = detailAction.payload.doc.id;
-                      // Asumimos que hay un solo documento en la colección de productos
-                      return this.firestore.collection(`${detailAction.payload.doc.ref.path}/product`).valueChanges().pipe(
-                        map(products => ({
-                          ...detailData,
-                          product: products[0], // Tomar el primer producto
-                          uid: detailID
-                        }))
-                      );
-                    })
-                  );
-                })
-              );
-
-            const table$ = this.firestore.collection(`${a.payload.doc.ref.path}/table`).valueChanges({ idField: 'uid' });
-            const orderedBy$ = this.firestore.collection(`${a.payload.doc.ref.path}/orderedBy`).valueChanges({ idField: 'uid' });
-
-            return combineLatest([detailsWithProduct$, table$, orderedBy$]).pipe(
-              map(([details, table, orderedBy]) => {
-                if (details.length === 0) {
-                  // Si no hay detalles válidos, no incluir la orden
-                  return null;
-                }
-                return {
-                  ...orderData,
-                  orderDate: date.toDate(),
-                  uid: orderID,
-                  details: details as OrderDetail[],
-                  table: table.length > 0 ? table[0] : {},
-                  orderedBy: orderedBy.length > 0 ? orderedBy[0] : {}
-                };
-              })
-            );
-          });
-
-          return combineLatest(orderObservables).pipe(
-            map(orders => {
-              const filteredOrders = orders.filter(order => order !== null); // Filtrar órdenes válidas
-              return { data: filteredOrders, message: 'Ok' };
-            })
-          );
-        }),
-        catchError(error => {
-          return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
-        })
-      );
-  }
-
   getBasicOrdersByCustomer(customerID: string): Observable<Response> {
     return this.firestore.collection<Order>('orders', ref => ref.where('orderedBy', '==', customerID))
       .snapshotChanges()
@@ -337,7 +264,7 @@ export class OrdersFirebaseService {
           const orderObservables = actions.map(a => {
             const orderData = a.payload.doc.data() as Order;
             const orderID = a.payload.doc.id;
-            const date = orderData.orderDate as any;  // Transformar orderDate a Date
+            const date = (orderData.orderDate as any).toDate();
 
             // Recuperar detalles y verificar si hay al menos uno que no esté en estado "F"
             return this.firestore.collection<OrderDetail>(`${a.payload.doc.ref.path}/details`, ref => ref.where('state', '!=', 'F'))
@@ -354,7 +281,7 @@ export class OrdersFirebaseService {
                     map(table => {
                       return {
                         ...orderData,
-                        orderDate: date.toDate(),  // Usar la fecha transformada
+                        orderDate: date,  // Usar la fecha transformada
                         uid: orderID,
                         table: table.length > 0 ? table[0] : {}
                       };
@@ -578,4 +505,76 @@ export class OrdersFirebaseService {
     );
   }
 
+  getCurrentOrders(): Observable<Response> {
+    return this.firestore.collection<Order>('orders')
+      .snapshotChanges()
+      .pipe(
+        switchMap(actions => {
+          if (actions.length === 0) {
+            return of({ data: [], message: 'No orders found' });
+          }
+
+          const orderObservables = actions.map(a => {
+            const orderData = a.payload.doc.data() as Order;
+            const date = (orderData.orderDate as any).toDate();
+            const orderID = a.payload.doc.id;
+
+            // Recuperar detalles y su producto asociado, aplicando el filtro directamente en Firestore
+            const detailsWithProduct$ = this.firestore.collection<OrderDetail>(`${a.payload.doc.ref.path}/details`, ref => ref.where('state', 'not-in', ['L', 'E', 'F']))
+              .snapshotChanges()
+              .pipe(
+                switchMap(detailActions => {
+                  if (detailActions.length === 0) {
+                    return of([]);
+                  }
+                  return combineLatest(
+                    detailActions.map(detailAction => {
+                      const detailData = detailAction.payload.doc.data() as OrderDetail;
+                      const detailID = detailAction.payload.doc.id;
+                      // Asumimos que hay un solo documento en la colección de productos
+                      return this.firestore.collection(`${detailAction.payload.doc.ref.path}/product`).valueChanges().pipe(
+                        map(products => ({
+                          ...detailData,
+                          product: products[0], // Tomar el primer producto
+                          uid: detailID
+                        }))
+                      );
+                    })
+                  );
+                })
+              );
+
+            const table$ = this.firestore.collection(`${a.payload.doc.ref.path}/table`).valueChanges({ idField: 'uid' });
+            const orderedBy$ = this.firestore.collection(`${a.payload.doc.ref.path}/orderedBy`).valueChanges({ idField: 'uid' });
+
+            return combineLatest([detailsWithProduct$, table$, orderedBy$]).pipe(
+              map(([details, table, orderedBy]) => {
+                if (details.length === 0) {
+                  // Si no hay detalles válidos, no incluir la orden
+                  return null;
+                }
+                return {
+                  ...orderData,
+                  orderDate: date,
+                  uid: orderID,
+                  details: details as OrderDetail[],
+                  table: table.length > 0 ? table[0] : {},
+                  orderedBy: orderedBy.length > 0 ? orderedBy[0] : {}
+                };
+              })
+            );
+          });
+
+          return combineLatest(orderObservables).pipe(
+            map(orders => {
+              const filteredOrders = orders.filter(order => order !== null); // Filtrar órdenes válidas
+              return { data: filteredOrders, message: 'Ok' };
+            })
+          );
+        }),
+        catchError(error => {
+          return of({ data: this.errorFireBase.parseError(error.code), message: 'Error' });
+        })
+      );
+  }
 }

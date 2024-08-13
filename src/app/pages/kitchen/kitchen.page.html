@@ -1,0 +1,75 @@
+<!-- TODO: ARREGLAR EL DISEÑO -->
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Cocina</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- Itera sobre las órdenes -->
+  <ion-card *ngFor="let order of currentOrders">
+    <ion-card-header>
+      <ion-card-title>
+        {{ order.uid }}
+      </ion-card-title>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-md="4">
+            <ion-card-subtitle>
+              Solicitante: {{ order.orderedBy.name }} {{ order.orderedBy.lastname }}
+            </ion-card-subtitle>
+          </ion-col>
+          <ion-col size="6" size-md="4">
+            <ion-card-subtitle>
+              Hora: {{ order.orderDate | date: 'short' }}
+            </ion-card-subtitle>
+          </ion-col>
+          <ion-col size="6" size-md="4">
+            <ion-card-subtitle>
+              Mesa: {{ order.table.number }}
+            </ion-card-subtitle>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card-header>
+
+    <ion-card-content>
+      <!-- Itera sobre los detalles de la orden -->
+      <ion-card *ngFor="let detail of order.details">
+        <ion-card-header>
+          <ion-card-subtitle>
+            Detalle del Producto
+          </ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item>
+            <ion-avatar slot="start">
+              <ion-label>
+                {{ detail.quantity }}
+              </ion-label>
+            </ion-avatar>
+            <ion-label>
+              <h2>{{ detail.product.name }}</h2>
+              <p class="subtext">{{ detail.indication }}</p>
+            </ion-label>
+
+            <!-- Checkbox para estado 'P' -->
+            <ion-checkbox slot="end" labelPlacement="stacked" [checked]="detail.state === 'P'"
+              [disabled]="detail.state === 'P'" (ionChange)="toggleStatusDetail(detail,'P')">
+              <ion-icon name="checkmark-outline">&nbsp;</ion-icon>
+            </ion-checkbox>
+
+            <!-- Checkbox para estado 'L' -->
+            <ion-checkbox slot="end" labelPlacement="stacked" [checked]="detail.state === 'L'"
+              [disabled]="detail.state !== 'P'" (ionChange)="toggleStatusDetail(detail,'L')">
+              <ion-icon name="checkmark-done-outline">&nbsp;</ion-icon>
+            </ion-checkbox>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

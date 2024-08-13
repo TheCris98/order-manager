@@ -29,7 +29,7 @@ export class NativeNotificationsService {
     this.authService = this.injector.get(AuthFirebaseService);
 
     if (this.platform.is('cordova') || this.platform.is('capacitor')) {
-      this.setupMobilePushNotifications();
+      await this.setupMobilePushNotifications();
     } else if (this.platform.is('desktop') || this.platform.is('pwa')) {
       await this.setupWebNotifications();
     }
@@ -71,9 +71,21 @@ export class NativeNotificationsService {
 
     PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
       console.log('Push action performed: ' + JSON.stringify(notification));
-      this.notificationSubject.next(notification.notification);
+      const payload = notification.notification.data;
+
+      // Verifica si el payload tiene el cuerpo de la notificación
+      if (payload) {
+        this.notificationSubject.next(payload);
+      } else {
+        // Si el payload no tiene el cuerpo de la notificación, intenta obtenerlo desde notification.notification
+        this.notificationSubject.next({
+          body: notification.notification.body || 'Nueva notificación',
+          title: notification.notification.title || 'Notificación'
+        });
+      }
     });
   }
+
 
   private async setupWebNotifications() {
     try {
@@ -121,18 +133,38 @@ export class NativeNotificationsService {
   }
 
   private showNotification(notification: any) {
-    console.log(notification)
+    console.log('AQUI ES XD: ', notification);
     const message = notification.body || notification.notification?.body || 'Nueva notificación';
     this.alertsService.presentSimpleToast(message, 2000);
   }
 
   public async getToken(): Promise<string> {
-    const registration = await navigator.serviceWorker.ready;
-    const vapidKey = 'BBFbgc9uc49wouHr98mf39Rc-MXm23MM52BHCB3JdA5GZTc_Pjid6Yqq4ME1nMxtjenPm6rTpHT8fB-oj0H_oCs';
-    return await this.messaging.getToken({
-      vapidKey: vapidKey,
-      serviceWorkerRegistration: registration
-    });
+    if (this.platform.is('cordova') || this.platform.is('capacitor')) {
+      return new Promise((resolve, reject) => {
+        PushNotifications.addListener('registration', (token) => {
+          resolve(token.value);
+        });
+
+        PushNotifications.addListener('registrationError', (error) => {
+          reject(error);
+        });
+
+        PushNotifications.requestPermissions().then(result => {
+          if (result.receive === 'granted') {
+            PushNotifications.register();
+          } else {
+            reject('Permission not granted for push notifications');
+          }
+        });
+      });
+    } else {
+      const registration = await navigator.serviceWorker.ready;
+      const vapidKey = 'BBFbgc9uc49wouHr98mf39Rc-MXm23MM52BHCB3JdA5GZTc_Pjid6Yqq4ME1nMxtjenPm6rTpHT8fB-oj0H_oCs';
+      return this.messaging.getToken({
+        vapidKey: vapidKey,
+        serviceWorkerRegistration: registration
+      });
+    }
   }
 
   async saveToken(token: string, userId: string) {

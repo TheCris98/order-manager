@@ -1,6 +1,6 @@
 importScripts('https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.1.3/firebase-messaging-compat.js');
-
+/* TODO: Ocultar estas credenciales */
 firebase.initializeApp({
   apiKey: "AIzaSyAeDigtxMb4aMxkBLarl93l2MXnrnXPFy8",
   authDomain: "order-manager-5b0dc.firebaseapp.com",
@@ -18,8 +18,18 @@ messaging.onBackgroundMessage(function (payload) {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/firebase-logo.png'
+    icon: 'assets/icon/ic_notification.png' // Ruta relativa correcta para el icono
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', function (event) {
+  console.log('[firebase-messaging-sw.js] Notification click Received.');
+
+  event.notification.close();
+
+  event.waitUntil(
+    clients.openWindow('http://localhost:8100/folder/orders') // URL de tu aplicación
+  );
 });

@@ -15,15 +15,18 @@ export class FolderPage implements OnInit {
   public folder!: string;
   user: UserData = this.authFirebaseService.loadUserFromLocalStorage();
   public appPages = [
+    /* TODO: 
+    1. CREAR LOS OTROS COMPONENTES PARA FINALIZAR CON LA CREACIÓN DE RUTAS
+    2. GESTIONAR LAS RUTAS PARA LOS DISTINTOS USUARIOS
+    */
     { title: 'Perfil', url: 'profile', icon: 'person-circle' },
     { title: 'Órdenes', url: 'orders', icon: 'list' },
-    /* TODO: CREAR LOS OTROS COMPONENTES PARA FINALIZAR CON LA CREACIÓN DE RUTAS */
     { title: 'Tienda', url: 'shop', icon: 'pricetags' },
+    { title: 'Cocina', url: 'kitchen', icon: 'flame' },
     /* { title: 'Cobro', url: '/folder/cashier', icon: 'cash' },
     { title: 'Ventas', url: '/folder/sales', icon: 'time' },
     { title: 'Reportes', url: '/folder/reports', icon: 'bar-chart' },
-    { title: 'Gestión', url: '/folder/manage', icon: 'add-circle' },
-    { title: 'Cocina', url: 'kitchen', icon: 'flame' },*/
+    { title: 'Gestión', url: '/folder/manage', icon: 'add-circle' },*/
     { title: 'Log Out', url: 'login', icon: 'log-out', special: true },
   ];
   constructor(

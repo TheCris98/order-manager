@@ -11,6 +11,7 @@ const routes: Routes = [
       { path: 'profile', loadChildren: () => import('src/app/pages/profile/profile.module').then(m => m.ProfilePageModule) },
       { path: 'orders', loadChildren: () => import('src/app/pages/orders/orders.module').then(m => m.OrdersPageModule) },
       { path: 'shop', loadChildren: () => import('src/app/pages/shop/shop.module').then(m => m.ShopPageModule) },
+      { path: 'kitchen', loadChildren: () => import('src/app/pages/kitchen/kitchen.module').then(m => m.KitchenPageModule) },
       { path: '', redirectTo: 'profile', pathMatch: 'full' }
     ]
   },
